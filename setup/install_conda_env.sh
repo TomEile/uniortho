@@ -13,3 +13,6 @@ conda env create -f environment.yml
 # skani
 conda activate scarap
 conda install -c bioconda skani
+
+# link uniortho
+ln -s $PWD/uniortho $HOME/.local/bin
