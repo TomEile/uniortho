@@ -17,10 +17,10 @@ dout=$2
 
 for acc in $(cat "$fin" | cut -f 1) ; do
   if $(ls $dout | grep -q ${acc:3}); then
-    echo "skipping download of ${acc:3}"
+    echo "$(blue skipping download of ${acc:3})"
     continue
   fi
-  echo "downloading ${acc:3}..."
+  echo "$(green downloading ${acc:3}...)"
 
   url=ftp.ncbi.nlm.nih.gov/genomes/all/${acc:3:3}/${acc:7:3}/${acc:10:3}/${acc:13:3}/${acc:3}*/${acc:3}*_genomic.fna.gz
   exitcode=1 

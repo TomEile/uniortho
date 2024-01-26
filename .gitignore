@@ -5,3 +5,4 @@ results
 test/bats
 test/test_helper
 SCARAP
+test_out

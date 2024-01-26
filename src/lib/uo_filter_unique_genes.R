@@ -4,11 +4,11 @@ suppressPackageStartupMessages(require('tidyverse'))
 
 #library(svglite)
 args= commandArgs(trailingOnly=TRUE)
-if (length(args)<3) {
-  stop("Not enough arguments found, please supply pangenome, ani matrix and optionally an output folder", call.=FALSE)
-} else if (length(args)==2) {
+if (length(args)<4) {
+  stop("Not enough arguments found, please supply pangenome, ani matrix, ani treshold and optionally an output folder", call.=FALSE)
+} else if (length(args)==3) {
   # default output file
-  args[3]="../results/uniquegenes.tsv"
+  args[4]="../results/uniquegenes.tsv"
 }
 
 ani_clean <- function(skani_filepath){
@@ -31,11 +31,11 @@ pan_clean<-function(filepath){
   pangenome
 }
 
-return_pangenome <-function(anipath,panpath){
+return_pangenome <-function(anipath,panpath, treshold=99.98){
   ANI_data<-ani_clean(anipath)
    
   filtered_strains<-ANI_data %>%
-    filter(ani!=100&ani>99.98) %>% 
+    filter(ani!=100&ani>treshold) %>% 
     .$rseq
   
   #return how many there are lost give it in a print
@@ -54,7 +54,7 @@ return_pangenome <-function(anipath,panpath){
   
 }
 
-pan<-return_pangenome(args[2],args[1])
+pan<-return_pangenome(args[2],args[1], args[3])
 
 #part to make the subset
 for (g in 2:100){
@@ -72,8 +72,8 @@ for (g in 2:100){
 }
 
 #Write all output
-write_delim(pan,file=paste0(args[3], "/pangenome_count.tsv"))
-write_delim(subset_pan,file=paste0(args[3], "/uniquegenes.tsv"))
+write_delim(pan,file=paste0(args[4], "/pangenome_count.tsv"))
+write_delim(subset_pan,file=paste0(args[4], "/uniquegenes.tsv"))
 
 #return anigraph, in the future, this can be made optional
 
