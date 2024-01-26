@@ -13,9 +13,9 @@ prepare_genomes(){
     bac120_file=$(basename "${gtdb_url}" .tar.gz)
 
     if [[ -n $(find "$data_folder" -type f -name "$bac120_file*") ]]; then
-        echo "$bac120_file already exists. Skipping download"
+        echo "$(blue $bac120_file already exists. Skipping download)"
     else
-        echo "$bac120_file File doesn't exist, downloading..."
+        echo "$(green $bac120_file File doesn\'t exist, downloading...)"
         wget $gtdb_url -P $data_folder
     fi
 
@@ -24,9 +24,9 @@ prepare_genomes(){
     selection_file_name=$(basename "${selection}")
 
     if [[ -n $(find $data_folder -type f -name "$selection_file_name*") ]]; then
-        echo "$selection_file_name already exists."
+        echo "$(blue $selection_file_name already exists.)"
     else
-        echo "$selection_file_name File doesn't exist, subsetting $bac120_file..."
+        echo "$(green $selection_file_name File doesn\'t exist, subsetting $bac120_file...)"
         # GTDB tax is in column 17; filter there
         # also filter for contam and completeness
         {
@@ -39,7 +39,7 @@ prepare_genomes(){
 
     # raise error if no genomes are found
     if [[ ! -s "$selection" ]]; then
-        echo "No genomes found for $species. Exiting..."
+        echo "$(red No genomes found for $species. Exiting...)"
         exit 1
     fi
 
@@ -48,7 +48,7 @@ prepare_genomes(){
     if [[ ! -n "$genomes_list" ]]; then
         while read f; do
             if [[ ! -s "$f" ]]; then
-                echo "File $f not found. Ignoring it..."
+                echo "$(cyan File $f not found. Ignoring it...)"
             else
                 cp $f $outf/fnas
             fi

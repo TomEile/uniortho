@@ -9,9 +9,9 @@ din=$dout/fnas
 for F in $din/*.fna.gz;
 	do N=$(basename $F .fna.gz);
     if test -s "$dout/faas/$N.faa"; then
-        echo "$dout/faas/$N.faa already exists. Skipping prodigal"
+        echo "$(blue $dout/faas/$N.faa already exists. Skipping prodigal)"
     else
-        echo "Running prodigal on $N.fna.gz"
+        echo "$(green Running prodigal on $N.fna.gz)"
         zcat $F | prodigal -a $dout/faas/$N.faa -d $dout/ffns/$N.ffn -q >/dev/null;
     fi
 done

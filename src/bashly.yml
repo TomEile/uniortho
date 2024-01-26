@@ -20,17 +20,22 @@ commands:
     help: Supply your output folder, by default, it will be in ../results
   - long: --ani
     short: -a
-    help: Use the fastANI approach on the samples to remove highly similar samples
+    validate: float
+    arg: ANI
+    default: "99.98"
+    help: The treshold ANI to remove highly similar samples.
   - long: --input_files
     short: -i
     arg: genomes_list
     default: ""
     help: Supply the file with paths to fna files that need to be included
+    validate: file_exists
   - long: --threads
     short: -t
     help: Supply number of threads used
     arg: THREADS
     default: "16"
+    validate: integer
   - long: --gtdb_version_url
     short: -g
     help: to use a different version of gtdb, supply the URL here
@@ -41,10 +46,12 @@ commands:
     help: Supply the minimum completeness threshold to select genomes on
     arg: COMPLETENESS
     default: "95"
+    validate: float
   - long: --contamination
     short: -C
     help: Supply the maximum contamination threshold to select genomes on
     arg: CONTAMINATION
+    validate: float
     default: "5"
 
 - name: test

@@ -85,8 +85,9 @@ uniortho_run_usage() {
     echo
 
     # :flag.usage
-    printf "  %s\n" "$(magenta "--ani, -a")"
-    printf "    Use the fastANI approach on the samples to remove highly similar samples\n"
+    printf "  %s\n" "$(magenta "--ani, -a ANI")"
+    printf "    The treshold ANI to remove highly similar samples.\n"
+    printf "    Default: 99.98\n"
     echo
 
     # :flag.usage
@@ -295,10 +296,10 @@ dout=$2
 
 for acc in $(cat "$fin" | cut -f 1) ; do
   if $(ls $dout | grep -q ${acc:3}); then
-    echo "skipping download of ${acc:3}"
+    echo "$(blue skipping download of ${acc:3})"
     continue
   fi
-  echo "downloading ${acc:3}..."
+  echo "$(green downloading ${acc:3}...)"
 
   url=ftp.ncbi.nlm.nih.gov/genomes/all/${acc:3:3}/${acc:7:3}/${acc:10:3}/${acc:13:3}/${acc:3}*/${acc:3}*_genomic.fna.gz
   exitcode=1
@@ -351,9 +352,9 @@ prepare_genomes(){
     bac120_file=$(basename "${gtdb_url}" .tar.gz)
 
     if [[ -n $(find "$data_folder" -type f -name "$bac120_file*") ]]; then
-        echo "$bac120_file already exists. Skipping download"
+        echo "$(blue $bac120_file already exists. Skipping download)"
     else
-        echo "$bac120_file File doesn't exist, downloading..."
+        echo "$(green $bac120_file File doesn\'t exist, downloading...)"
         wget $gtdb_url -P $data_folder
     fi
 
@@ -362,9 +363,9 @@ prepare_genomes(){
     selection_file_name=$(basename "${selection}")
 
     if [[ -n $(find $data_folder -type f -name "$selection_file_name*") ]]; then
-        echo "$selection_file_name already exists."
+        echo "$(blue $selection_file_name already exists.)"
     else
-        echo "$selection_file_name File doesn't exist, subsetting $bac120_file..."
+        echo "$(green $selection_file_name File doesn\'t exist, subsetting $bac120_file...)"
         # GTDB tax is in column 17; filter there
         # also filter for contam and completeness
         {
@@ -377,7 +378,7 @@ prepare_genomes(){
 
     # raise error if no genomes are found
     if [[ ! -s "$selection" ]]; then
-        echo "No genomes found for $species. Exiting..."
+        echo "$(red No genomes found for $species. Exiting...)"
         exit 1
     fi
 
@@ -386,7 +387,7 @@ prepare_genomes(){
     if [[ ! -n "$genomes_list" ]]; then
         while read f; do
             if [[ ! -s "$f" ]]; then
-                echo "File $f not found. Ignoring it..."
+                echo "$(cyan File $f not found. Ignoring it...)"
             else
                 cp $f $outf/fnas
             fi
@@ -422,7 +423,6 @@ run_pangenome() {
 din=$1/faas
 dout=$1/pan
 threads=$2
-echo $threads
 [ -d "$dout" ] || mkdir -p "$dout"
 scarap pan $din $dout -t $threads -c
 
@@ -440,9 +440,9 @@ din=$dout/fnas
 for F in $din/*.fna.gz;
 	do N=$(basename $F .fna.gz);
     if test -s "$dout/faas/$N.faa"; then
-        echo "$dout/faas/$N.faa already exists. Skipping prodigal"
+        echo "$(blue $dout/faas/$N.faa already exists. Skipping prodigal)"
     else
-        echo "Running prodigal on $N.fna.gz"
+        echo "$(green Running prodigal on $N.fna.gz)"
         zcat $F | prodigal -a $dout/faas/$N.faa -d $dout/ffns/$N.ffn -q >/dev/null;
     fi
 done
@@ -452,6 +452,31 @@ done
 run_skani(){
     dout=$1
     skani triangle $dout/fnas/* -o $dout/ani
+}
+
+# src/lib/validations/validate_dir_exists.sh
+validate_dir_exists() {
+  [[ -d "$1" ]] || echo "must be an existing directory"
+}
+
+# src/lib/validations/validate_file_exists.sh
+validate_file_exists() {
+  [[ -f "$1" ]] || echo "must be an existing file"
+}
+
+# src/lib/validations/validate_float.sh
+validate_float() {
+  [[ "$1" =~ ^[0-9]+(\.[0-9]+)?$ ]] || echo "must be a float"
+}
+
+# src/lib/validations/validate_integer.sh
+validate_integer() {
+  [[ "$1" =~ ^[0-9]+$ ]] || echo "must be an integer"
+}
+
+# src/lib/validations/validate_not_empty.sh
+validate_not_empty() {
+  [[ -z "$1" ]] && echo "must not be empty"
 }
 
 # :command.command_functions
@@ -466,16 +491,11 @@ uniortho_run_command() {
   completeness=${args[--completeness]}
   contamination=${args[--contamination]}
   cpus=${args[--threads]}
+  ani_threshold=${args[--ani]}
 
   # Add s__ to species if absent
   if [[ $species != s__* ]]; then
       species="s__$species"
-  fi
-
-  # Check if genome_list file exists when supplied
-  if [[ -n "$genomes_list" && ! -s "$genome_list" ]]; then
-      echo "File $genomes_list not found. Exiting..."
-      exit 1
   fi
 
   # check for requirements: R, scarap and skani
@@ -492,7 +512,7 @@ uniortho_run_command() {
 
       run_pangenome $outf $cpus
   else
-      echo "Pangenome already exists. Skipping pangenome calculation"
+      echo "$(blue Pangenome already exists. Skipping pangenome calculation)"
   fi
 
   #using skani here, since its 'supposed to be better' for highly similar ANIs
@@ -503,18 +523,18 @@ uniortho_run_command() {
   if [[ ! -s "$outf/ani.af" ]]; then
       run_skani $outf
   else
-      echo "ANI matrix already exists. Skipping ANI calculation"
+      echo "$(blue ANI matrix already exists. Skipping ANI calculation)"
   fi
 
-  # TODO: Add to path and call from there
+  # Rscript should be added to path and called from there
   if [[ ! -s $HOME/.local/bin/uo_filter_unique_genes.R ]]; then
-      echo "uo_filter_unique_genes.R not found in $HOME/.local/bin."
-      echo "Please add the script to your path, for example with"
-      echo "ln -s $PWD/src/lib/uo_filter_unique_genes.R $HOME/.local/bin"
+      echo "$(red uo_filter_unique_genes.R not found in $HOME/.local/bin.)"
+      echo "$(red add the script to your path, for example with)"
+      echo "$(magenta ln -s $PWD/src/lib/uo_filter_unique_genes.R $HOME/.local/bin)"
       exit 1
   fi
 
-  $HOME/.local/bin/uo_filter_unique_genes.R $outf/pan/pangenome.tsv $outf/ani.af $outf
+  $HOME/.local/bin/uo_filter_unique_genes.R $outf/pan/pangenome.tsv $outf/ani.af $ani_threshold $outf
   fetch_genes $outf
 
 }
@@ -648,9 +668,21 @@ uniortho_run_parse_requirements() {
       # :flag.case
       --ani | -a)
 
-        # :flag.case_no_arg
-        args['--ani']=1
-        shift
+        # :flag.case_arg
+        if [[ -n ${2+x} ]]; then
+          # :flag.validations
+          if [[ -n $(validate_float "$2") ]]; then
+            printf "validation error in %s:\n%s\n" "--ani, -a ANI" "$(validate_float "$2")" >&2
+            exit 1
+          fi
+
+          args['--ani']="$2"
+          shift
+          shift
+        else
+          printf "%s\n" "--ani requires an argument: --ani, -a ANI" >&2
+          exit 1
+        fi
         ;;
 
       # :flag.case
@@ -658,6 +690,11 @@ uniortho_run_parse_requirements() {
 
         # :flag.case_arg
         if [[ -n ${2+x} ]]; then
+          # :flag.validations
+          if [[ -n $(validate_file_exists "$2") ]]; then
+            printf "validation error in %s:\n%s\n" "--input_files, -i GENOMES_LIST" "$(validate_file_exists "$2")" >&2
+            exit 1
+          fi
 
           args['--input_files']="$2"
           shift
@@ -673,6 +710,11 @@ uniortho_run_parse_requirements() {
 
         # :flag.case_arg
         if [[ -n ${2+x} ]]; then
+          # :flag.validations
+          if [[ -n $(validate_integer "$2") ]]; then
+            printf "validation error in %s:\n%s\n" "--threads, -t THREADS" "$(validate_integer "$2")" >&2
+            exit 1
+          fi
 
           args['--threads']="$2"
           shift
@@ -703,6 +745,11 @@ uniortho_run_parse_requirements() {
 
         # :flag.case_arg
         if [[ -n ${2+x} ]]; then
+          # :flag.validations
+          if [[ -n $(validate_float "$2") ]]; then
+            printf "validation error in %s:\n%s\n" "--completeness, -c COMPLETENESS" "$(validate_float "$2")" >&2
+            exit 1
+          fi
 
           args['--completeness']="$2"
           shift
@@ -718,6 +765,11 @@ uniortho_run_parse_requirements() {
 
         # :flag.case_arg
         if [[ -n ${2+x} ]]; then
+          # :flag.validations
+          if [[ -n $(validate_float "$2") ]]; then
+            printf "validation error in %s:\n%s\n" "--contamination, -C CONTAMINATION" "$(validate_float "$2")" >&2
+            exit 1
+          fi
 
           args['--contamination']="$2"
           shift
@@ -758,6 +810,7 @@ uniortho_run_parse_requirements() {
 
   # :command.default_assignments
   [[ -n ${args['--outfolder']:-} ]] || args['--outfolder']="./results"
+  [[ -n ${args['--ani']:-} ]] || args['--ani']="99.98"
   [[ -n ${args['--input_files']:-} ]] || args['--input_files']=""
   [[ -n ${args['--threads']:-} ]] || args['--threads']="16"
   [[ -n ${args['--gtdb_version_url']:-} ]] || args['--gtdb_version_url']="https://data.gtdb.ecogenomic.org/releases/latest/bac120_metadata.tsv.gz"
