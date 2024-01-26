@@ -27,6 +27,12 @@ After dependencies have installed the script can be used while the environment i
 conda activate scarap
 uniortho run
 ```
+
+For a relatively quick test to see if all dependencies of the tool are working as expected, you could run the following analysis:
+```{bash}
+uniortho run "s__Sumerlaea chitinivorans" -C 10
+```
+
 # Usage
 
 To get a detailed overview of the parameters run:
