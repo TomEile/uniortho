@@ -28,9 +28,24 @@ conda activate scarap
 uniortho run
 ```
 
-For a relatively quick test to see if all dependencies of the tool are working as expected, you could run the following analysis:
+For a relatively quick test to see if all dependencies of the tool are working as expected, you could run: 
+
 ```{bash}
-uniortho run "s__Sumerlaea chitinivorans" -C 10
+uniortho test
+```
+
+This should create a test_out directory with the following files and directories:
+```
+test_out/
+├── ani
+├── ani.af
+├── faas
+├── fetch
+├── ffns
+├── fnas
+├── pan
+├── pangenome_count.tsv
+└── uniquegenes.tsv
 ```
 
 # Usage

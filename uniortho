@@ -34,7 +34,8 @@ uniortho_usage() {
   echo
   # :command.usage_commands
   printf "%s\n" "$(bold "Commands:")"
-  printf "  %s   running the pipeline\n" "$(green "run")"
+  printf "  %s   running the pipeline\n" "$(green "run") "
+  printf "  %s   test the pipeline's dependencies\n" "$(green "test")"
   echo
 
   # :command.long_usage
@@ -134,6 +135,38 @@ uniortho_run_usage() {
   fi
 }
 
+# :command.usage
+uniortho_test_usage() {
+  if [[ -n $long_usage ]]; then
+    printf "uniortho test - test the pipeline's dependencies\n"
+    echo
+
+  else
+    printf "uniortho test - test the pipeline's dependencies\n"
+    echo
+
+  fi
+
+  printf "Alias: t\n"
+  echo
+
+  printf "%s\n" "$(bold "Usage:")"
+  printf "  uniortho test\n"
+  printf "  uniortho test --help | -h\n"
+  echo
+
+  # :command.long_usage
+  if [[ -n $long_usage ]]; then
+    printf "%s\n" "$(bold "Options:")"
+
+    # :command.usage_fixed_flags
+    printf "  %s\n" "$(magenta "--help, -h")"
+    printf "    Show this help\n"
+    echo
+
+  fi
+}
+
 # :command.normalize_input
 normalize_input() {
   local arg flags
@@ -206,6 +239,7 @@ check_requirement(){
     if ! command -v $cmd &> /dev/null
     then
         echo "$(magenta $cmd) could not be found. Please install $cmd and add it to your PATH"
+        echo "Or if using conda, $(green activate your conda environment)"
         exit
     fi
 }
@@ -214,6 +248,7 @@ check_requirements(){
 
     check_requirement "scarap"
     check_requirement "skani"
+    check_requirement "prodigal"
     check_requirement "Rscript"
 
 }
@@ -484,6 +519,13 @@ uniortho_run_command() {
 
 }
 
+# :command.function
+uniortho_test_command() {
+  # src/test_command.sh
+  uniortho run "s__Sumerlaea chitinivorans" -C 10 -o test_out
+
+}
+
 # :command.parse_requirements
 parse_requirements() {
   # :command.fixed_flags_filter
@@ -517,6 +559,13 @@ parse_requirements() {
       action="run"
       shift
       uniortho_run_parse_requirements "$@"
+      shift $#
+      ;;
+
+    test | t)
+      action="test"
+      shift
+      uniortho_test_parse_requirements "$@"
       shift $#
       ;;
 
@@ -717,6 +766,50 @@ uniortho_run_parse_requirements() {
 
 }
 
+# :command.parse_requirements
+uniortho_test_parse_requirements() {
+  # :command.fixed_flags_filter
+  while [[ $# -gt 0 ]]; do
+    case "${1:-}" in
+      --help | -h)
+        long_usage=yes
+        uniortho_test_usage
+        exit
+        ;;
+
+      *)
+        break
+        ;;
+
+    esac
+  done
+
+  # :command.command_filter
+  action="test"
+
+  # :command.parse_requirements_while
+  while [[ $# -gt 0 ]]; do
+    key="$1"
+    case "$key" in
+
+      -?*)
+        printf "invalid option: %s\n" "$key" >&2
+        exit 1
+        ;;
+
+      *)
+        # :command.parse_requirements_case
+        # :command.parse_requirements_case_simple
+        printf "invalid argument: %s\n" "$key" >&2
+        exit 1
+
+        ;;
+
+    esac
+  done
+
+}
+
 # :command.initialize
 initialize() {
   version="0.0.1"
@@ -737,6 +830,7 @@ run() {
 
   case "$action" in
     "run") uniortho_run_command ;;
+    "test") uniortho_test_command ;;
   esac
 }
 

@@ -46,3 +46,7 @@ commands:
     help: Supply the maximum contamination threshold to select genomes on
     arg: CONTAMINATION
     default: "5"
+
+- name: test
+  alias: t
+  help: test the pipeline's dependencies
