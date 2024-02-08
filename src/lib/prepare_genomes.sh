@@ -44,7 +44,7 @@ prepare_genomes(){
     fi
 
     download_fnas "$selection" $outf/fnas
-    #if you have non-public genomes, add your own fnas files in the correct folder before running the next steps: maybe automate
+    #if you have non-public genomes, add your own fnas files in the correct folder before running the next steps
     if [[ ! -n "$genomes_list" ]]; then
         while read f; do
             if [[ ! -s "$f" ]]; then

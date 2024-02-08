@@ -53,6 +53,8 @@ commands:
     arg: CONTAMINATION
     validate: float
     default: "5"
+  - long: --species
+    help: Supply a genus name, leading with g__ to generate species specific primers (takes long)
 
 - name: test
   alias: t

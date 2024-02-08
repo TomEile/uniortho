@@ -7,10 +7,23 @@ completeness=${args[--completeness]}
 contamination=${args[--contamination]}
 cpus=${args[--threads]}
 ani_threshold=${args[--ani]}
+species_specific=${args[--species]}
 
-# Add s__ to species if absent
-if [[ $species != s__* ]]; then
-    species="s__$species"
+if [[ $species_specific != 1 ]]; then
+    # Add s__ to species if absent
+    if [[ $species != s__* ]]; then
+      species="s__$species"
+    fi
+else
+    # Add g__ to genus if absent
+    if [[ $species != g__* ]]; then
+      species="g__$species"
+    fi
+
+    # Adjust default ani value to 95:
+    if (( $(echo "$ani_threshold >= 99.98" | bc -l) )); then
+        ani_threshold=95
+    fi
 fi
 
 # check for requirements: R, scarap and skani

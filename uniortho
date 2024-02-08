@@ -120,6 +120,11 @@ uniortho_run_usage() {
     printf "    Default: 5\n"
     echo
 
+    # :flag.usage
+    printf "  %s\n" "$(magenta "--species")"
+    printf "    Supply a genus name, leading with g__ to generate species specific primers\n    (takes long)\n"
+    echo
+
     # :command.usage_fixed_flags
     printf "  %s\n" "$(magenta "--help, -h")"
     printf "    Show this help\n"
@@ -383,7 +388,7 @@ prepare_genomes(){
     fi
 
     download_fnas "$selection" $outf/fnas
-    #if you have non-public genomes, add your own fnas files in the correct folder before running the next steps: maybe automate
+    #if you have non-public genomes, add your own fnas files in the correct folder before running the next steps
     if [[ ! -n "$genomes_list" ]]; then
         while read f; do
             if [[ ! -s "$f" ]]; then
@@ -492,10 +497,23 @@ uniortho_run_command() {
   contamination=${args[--contamination]}
   cpus=${args[--threads]}
   ani_threshold=${args[--ani]}
+  species_specific=${args[--species]}
 
-  # Add s__ to species if absent
-  if [[ $species != s__* ]]; then
-      species="s__$species"
+  if [[ $species_specific != 1 ]]; then
+      # Add s__ to species if absent
+      if [[ $species != s__* ]]; then
+        species="s__$species"
+      fi
+  else
+      # Add g__ to genus if absent
+      if [[ $species != g__* ]]; then
+        species="g__$species"
+      fi
+
+      # Adjust default ani value to 95:
+      if (( $(echo "$ani_threshold >= 99.98" | bc -l) )); then
+          ani_threshold=95
+      fi
   fi
 
   # check for requirements: R, scarap and skani
@@ -778,6 +796,14 @@ uniortho_run_parse_requirements() {
           printf "%s\n" "--contamination requires an argument: --contamination, -C CONTAMINATION" >&2
           exit 1
         fi
+        ;;
+
+      # :flag.case
+      --species)
+
+        # :flag.case_no_arg
+        args['--species']=1
+        shift
         ;;
 
       -?*)
