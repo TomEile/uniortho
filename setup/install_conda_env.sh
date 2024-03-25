@@ -18,9 +18,8 @@ fi
 $pms env create -f $scarap_folder/environment.yml 
 
 # skani
-$pms activate scarap
-$pms install -c bioconda prodigal
-$pms install -c bioconda skani
+conda activate scarap
+$pms install -y -c bioconda prodigal skani
 
 # link uniortho and R filter script
 ln -s $PWD/uniortho $HOME/.local/bin

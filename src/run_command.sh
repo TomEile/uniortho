@@ -35,7 +35,7 @@ fi
 # and those are the ones we want to remove 
 #run_fastani $out $species
 
-if [[ ! -s "$outf/ani.af" ]]; then
+if [[ ! -s "$outf/ani" ]]; then
     run_skani $outf
 else
     echo "$(blue ANI matrix already exists. Skipping ANI calculation)"
@@ -50,5 +50,5 @@ if [[ ! -s $HOME/.local/bin/uo_filter_unique_genes.R ]]; then
     exit 1
 fi
 
-$HOME/.local/bin/uo_filter_unique_genes.R $outf/pan/pangenome.tsv $outf/ani.af $ani_threshold $outf
+$HOME/.local/bin/uo_filter_unique_genes.R $outf/pan/pangenome.tsv $outf/ani $ani_threshold $outf
 fetch_genes $outf
