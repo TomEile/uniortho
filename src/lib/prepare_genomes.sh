@@ -27,13 +27,14 @@ prepare_genomes(){
         echo "$(blue $selection_file_name already exists.)"
     else
         echo "$(green $selection_file_name File doesn\'t exist, subsetting $bac120_file...)"
-        # GTDB tax is in column 17; filter there
+        # GTDB tax is in column 17 or 20; filter there
+        taxcol=`zcat $data_folder/$bac120_file | awk -v RS='\t' '/taxonomy/{print NR; exit}'`
         # also filter for contam and completeness
         {
             zless $data_folder/$bac120_file \
             | awk -F "\t" -v species="$species" \
-                -v complete="$completeness" -v contam="$contamination" \
-                '$17 ~ species &&  $3 >= complete && $4 <= contam' > "$selection"
+                -v taxcol=$taxcol -v complete="$completeness" -v contam="$contamination" \
+                '$taxcol ~ species &&  $3 >= complete && $4 <= contam' > "$selection"
         }
     fi
 
