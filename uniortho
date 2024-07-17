@@ -298,7 +298,8 @@ for acc in $(cat "$fin" | cut -f 1) ; do
        rsync --copy-links --times --verbose \
            --exclude *_cds_from_genomic.fna.gz \
            --exclude *_rna_from_genomic.fna.gz \
-           rsync://$url $dout > /dev/null 2>&1 || exitcode=$?
+           rsync://$url $dout > /dev/null 2>&1
+       exitcode=$?
        attempt=$((attempt + 1))
        #echo $exitcode $attempt
        if [[ $exitcode -ne 0 ]] && [[ $attempt -eq 6 ]] ; then
