@@ -52,3 +52,5 @@ fi
 
 $HOME/.local/bin/uo_filter_unique_genes.R $outf/pan/pangenome.tsv $outf/ani $ani_threshold $outf
 fetch_genes $outf
+
+run_blast_check $outf
