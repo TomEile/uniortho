@@ -55,7 +55,7 @@ commands:
     default: "5"
   - long: --blast
     short: -b
-    help: check the unique orthogroups by blasting them against the NCBI nt database
+    help: check the unique orthogroups by blasting them against the NCBI nt database. This takes a long time to run.
     default: false
     
 - name: test

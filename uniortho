@@ -122,7 +122,7 @@ uniortho_run_usage() {
 
     # :flag.usage
     printf "  %s\n" "$(magenta "--blast, -b")"
-    printf "    check the unique orthogroups by blasting them against the NCBI nt database\n"
+    printf "    check the unique orthogroups by blasting them against the NCBI nt database.\n    This takes a long time to run.\n"
     echo
 
     # :command.usage_fixed_flags
@@ -244,6 +244,19 @@ inspect_args() {
 }
 
 # :command.user_lib
+# src/lib/check_if_script_in_bin.sh
+script_in_bin(){
+
+command=$1
+
+if [[ ! -s $HOME/.local/bin/$command ]]; then
+        echo "$(red $command not found in $HOME/.local/bin.)"
+        echo "$(red add the script to your path, for example with)"
+        echo "$(magenta ln -s $PWD/src/lib/$command $HOME/.local/bin)"
+        exit 1
+fi
+}
+
 # src/lib/check_requirements.sh
 check_requirement(){
 
@@ -575,11 +588,14 @@ uniortho_run_command() {
       exit 1
   fi
 
+  script_in_bin "uo_filter_unique_genes.R"
   $HOME/.local/bin/uo_filter_unique_genes.R $outf/pan/pangenome.tsv $outf/ani $ani_threshold $outf
   fetch_genes $outf
 
   if [[ $blast_check == 1 ]]; then
       run_blast_check $outf $cpus
+      script_in_bin "process_blast_check.py"
+      $HOME/.local/bin/process_blast_check.py $outf/blast/results $outf/uniquegenes.tsv $outf
   fi
 
 }
@@ -588,11 +604,19 @@ uniortho_run_command() {
 uniortho_test_command() {
   # src/test_command.sh
   blast_check=${args[--blast]}
+  outf="test_out"
+
   if [[ $blast_check == 1 ]]; then
-      echo $blast_check
-      uniortho run "s__Sumerlaea chitinivorans" -C 10 -o test_out --blast
+      script_in_bin "process_blast_check.py"
+      if [[ ! -s "test_out/blast/results" ]]; then
+      uniortho run "s__Sumerlaea chitinivorans" -C 10 -o $outf --blast
+      else
+
+          echo "$(blue Blast results already exist. Skipping blast)"
+      fi
+      python3 $HOME/.local/bin/process_blast_check.py $outf/blast/results $outf/uniquegenes.tsv $outf
   else
-      uniortho run "s__Sumerlaea chitinivorans" -C 10 -o test_out
+      uniortho run "s__Sumerlaea chitinivorans" -C 10 -o $outf
   fi
 
 }
