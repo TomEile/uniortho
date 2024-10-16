@@ -9,13 +9,12 @@ threads=$2
 
 mkdir -p $dout
 
-zcat $dgenomes/*.gz | 
-makeblastdb -in - -dbtype nucl -out $dout/db -title genomes > $dout/db.log
-
+echo "$(green Running blast against nt database)"
 tail -n +2 $uqgenes |
 cut -d ' ' -f 3 |
 awk -v d="$din/" '$0='d'$0".fasta"' |
 xargs cat |
-blastn -query - -db $dout/db -out $dout/results -outfmt 6
+blastn -query - -db nt -remote \
+ -out $dout/results -outfmt 6
 
 }

@@ -53,7 +53,17 @@ commands:
     arg: CONTAMINATION
     validate: float
     default: "5"
-
+  - long: --blast
+    short: -b
+    help: check the unique orthogroups by blasting them against the NCBI nt database
+    default: false
+    
 - name: test
   alias: t
   help: test the pipeline's dependencies
+  flags:
+  - long: --blast
+    short: -b
+    help: check the unique orthogroups by blasting them against the NCBI nt database
+    default: false
+  
