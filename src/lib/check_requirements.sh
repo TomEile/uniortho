@@ -15,5 +15,6 @@ check_requirements(){
     check_requirement "skani"
     check_requirement "prodigal"
     check_requirement "Rscript"
+    check_requirement "blastn"
 
 }
