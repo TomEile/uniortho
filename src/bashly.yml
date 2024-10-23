@@ -13,7 +13,7 @@ commands:
     help: name of the species, leading with the s__ (using gtdb taxonomy)
 
   - name: database
-    default: false
+    required: false
     help: optional user supplied BLAST database, if not supplied, the pipeline will use the nt database.
 
   flags:
@@ -69,7 +69,7 @@ commands:
   args: &run_args
 
   - name: database
-    default: false
+    required: false
     help: optional user supplied BLAST database, if not supplied, the pipeline will use the nt database.
 
   flags:
