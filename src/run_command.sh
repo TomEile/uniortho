@@ -8,6 +8,7 @@ contamination=${args[--contamination]}
 cpus=${args[--threads]}
 ani_threshold=${args[--ani]}
 blast_check=${args[--blast]}
+blast_db=${args[database]}
 
 # Add s__ to species if absent
 if [[ $species != s__* ]]; then
@@ -56,7 +57,7 @@ $HOME/.local/bin/uo_filter_unique_genes.R $outf/pan/pangenome.tsv $outf/ani $ani
 fetch_genes $outf
 
 if [[ $blast_check == 1 ]]; then
-    run_blast_check $outf $cpus
+    run_blast_check $outf $cpus $blast_db
     script_in_bin "process_blast_check.py"
     $HOME/.local/bin/process_blast_check.py $outf/blast/results $outf/uniquegenes.tsv $outf
 fi
