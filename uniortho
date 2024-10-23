@@ -120,6 +120,11 @@ uniortho_run_usage() {
     printf "    Default: 5\n"
     echo
 
+    # :flag.usage
+    printf "  %s\n" "$(magenta "--blast, -b")"
+    printf "    check the unique orthogroups by blasting them against the NCBI nt database.\n    This takes a long time to run.\n"
+    echo
+
     # :command.usage_fixed_flags
     printf "  %s\n" "$(magenta "--help, -h")"
     printf "    Show this help\n"
@@ -152,13 +157,19 @@ uniortho_test_usage() {
   echo
 
   printf "%s\n" "$(bold "Usage:")"
-  printf "  uniortho test\n"
+  printf "  uniortho test [OPTIONS]\n"
   printf "  uniortho test --help | -h\n"
   echo
 
   # :command.long_usage
   if [[ -n $long_usage ]]; then
     printf "%s\n" "$(bold "Options:")"
+
+    # :command.usage_flags
+    # :flag.usage
+    printf "  %s\n" "$(magenta "--blast, -b")"
+    printf "    check the unique orthogroups by blasting them against the NCBI nt database\n"
+    echo
 
     # :command.usage_fixed_flags
     printf "  %s\n" "$(magenta "--help, -h")"
@@ -221,6 +232,19 @@ inspect_args() {
 }
 
 # :command.user_lib
+# src/lib/check_if_script_in_bin.sh
+script_in_bin(){
+
+command=$1
+
+if [[ ! -s $HOME/.local/bin/$command ]]; then
+        echo "$(red $command not found in $HOME/.local/bin.)"
+        echo "$(red add the script to your path, for example with)"
+        echo "$(magenta ln -s $PWD/src/lib/$command $HOME/.local/bin)"
+        exit 1
+fi
+}
+
 # src/lib/check_requirements.sh
 check_requirement(){
 
@@ -239,6 +263,7 @@ check_requirements(){
     check_requirement "skani"
     check_requirement "prodigal"
     check_requirement "Rscript"
+    check_requirement "blastn"
 
 }
 
@@ -317,11 +342,16 @@ fetch_genes(){
 din=$1
 filtered_pan=$2
 
+if [[ -n $(find "$din/fetch/fastas" -type f -name "*.fasta") ]]; then
+    echo "$(blue $din/fetch/fastas already exists. Skipping fetch)"
+else
+
 ls $din/ffns/* > $din/input_ffns.txt
 cat $din/input_ffns.txt
 scarap fetch $din/input_ffns.txt $din/pan/pangenome.tsv $din/fetch
 # cleanup
 rm $din/input_ffns.txt
+fi
 }
 
 # src/lib/prepare_genomes.sh
@@ -387,6 +417,28 @@ prepare_genomes(){
 
 }
 
+# src/lib/run_blast_check.sh
+#!/usr/bin/env bash
+#requirements: blastn
+run_blast_check(){
+din=$1/fetch/fastas
+dgenomes=$1/fnas
+uqgenes=$1/uniquegenes.tsv
+dout=$1/blast
+threads=$2
+
+mkdir -p $dout
+
+echo "$(green Running blast against nt database)"
+tail -n +2 $uqgenes |
+cut -d ' ' -f 3 |
+awk -v d="$din/" '$0='d'$0".fasta"' |
+xargs cat |
+blastn -query - -db nt -remote \
+ -out $dout/results -outfmt 6
+
+}
+
 # src/lib/run_fastani.sh
 #!/usr/bin/env bash
 #requirements: fastANI
@@ -414,7 +466,6 @@ dout=$1/pan
 threads=$2
 [ -d "$dout" ] || mkdir -p "$dout"
 scarap pan $din $dout -t $threads -c
-
 }
 
 # src/lib/run_prodigal.sh
@@ -441,6 +492,7 @@ done
 run_skani(){
     dout=$1
     skani triangle --full-matrix $dout/fnas/* > $dout/ani
+    rm skani_matrix.af
 }
 
 # src/lib/validations/validate_dir_exists.sh
@@ -481,6 +533,7 @@ uniortho_run_command() {
   contamination=${args[--contamination]}
   cpus=${args[--threads]}
   ani_threshold=${args[--ani]}
+  blast_check=${args[--blast]}
 
   # Add s__ to species if absent
   if [[ $species != s__* ]]; then
@@ -523,15 +576,36 @@ uniortho_run_command() {
       exit 1
   fi
 
+  script_in_bin "uo_filter_unique_genes.R"
   $HOME/.local/bin/uo_filter_unique_genes.R $outf/pan/pangenome.tsv $outf/ani $ani_threshold $outf
   fetch_genes $outf
+
+  if [[ $blast_check == 1 ]]; then
+      run_blast_check $outf $cpus
+      script_in_bin "process_blast_check.py"
+      $HOME/.local/bin/process_blast_check.py $outf/blast/results $outf/uniquegenes.tsv $outf
+  fi
 
 }
 
 # :command.function
 uniortho_test_command() {
   # src/test_command.sh
-  uniortho run "s__Sumerlaea chitinivorans" -C 10 -o test_out
+  blast_check=${args[--blast]}
+  outf="test_out"
+
+  if [[ $blast_check == 1 ]]; then
+      script_in_bin "process_blast_check.py"
+      if [[ ! -s "test_out/blast/results" ]]; then
+      uniortho run "s__Sumerlaea chitinivorans" -C 10 -o $outf --blast
+      else
+
+          echo "$(blue Blast results already exist. Skipping blast)"
+      fi
+      python3 $HOME/.local/bin/process_blast_check.py $outf/blast/results $outf/uniquegenes.tsv $outf
+  else
+      uniortho run "s__Sumerlaea chitinivorans" -C 10 -o $outf
+  fi
 
 }
 
@@ -769,6 +843,14 @@ uniortho_run_parse_requirements() {
         fi
         ;;
 
+      # :flag.case
+      --blast | -b)
+
+        # :flag.case_no_arg
+        args['--blast']=1
+        shift
+        ;;
+
       -?*)
         printf "invalid option: %s\n" "$key" >&2
         exit 1
@@ -833,6 +915,13 @@ uniortho_test_parse_requirements() {
   while [[ $# -gt 0 ]]; do
     key="$1"
     case "$key" in
+      # :flag.case
+      --blast | -b)
+
+        # :flag.case_no_arg
+        args['--blast']=1
+        shift
+        ;;
 
       -?*)
         printf "invalid option: %s\n" "$key" >&2

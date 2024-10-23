@@ -6,5 +6,5 @@ din=$1/faas
 dout=$1/pan
 threads=$2
 [ -d "$dout" ] || mkdir -p "$dout"
-scarap pan $din $dout -t $threads -c 
+scarap pan $din $dout -t $threads -c
 }
