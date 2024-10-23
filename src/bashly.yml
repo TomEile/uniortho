@@ -12,6 +12,10 @@ commands:
     required: true
     help: name of the species, leading with the s__ (using gtdb taxonomy)
 
+  - name: database
+    required: false
+    help: optional user supplied BLAST database, if not supplied, the pipeline will use the nt database.
+
   flags:
   - long: --outfolder
     short: -o
@@ -57,13 +61,21 @@ commands:
     short: -b
     help: check the unique orthogroups by blasting them against the NCBI nt database. This takes a long time to run.
     default: false
-    
+
+
 - name: test
   alias: t
   help: test the pipeline's dependencies
+  args: &run_args
+
+  - name: database
+    required: false
+    help: optional user supplied BLAST database, if not supplied, the pipeline will use the nt database.
+
   flags:
   - long: --blast
     short: -b
     help: check the unique orthogroups by blasting them against the NCBI nt database
     default: false
+
   
