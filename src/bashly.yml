@@ -40,7 +40,7 @@ commands:
     short: -g
     help: to use a different version of gtdb, supply the URL here
     arg: URL
-    default: https://data.gtdb.ecogenomic.org/releases/latest/bac120_metadata.tsv.gz
+    default: https://data.ace.uq.edu.au/public/gtdb/data/releases/latest/bac120_metadata.tsv.gz
   - long: --completeness
     short: -c
     help: Supply the minimum completeness threshold to select genomes on
