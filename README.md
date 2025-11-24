@@ -38,7 +38,6 @@ This should create a test_out directory with the following files and directories
 ```
 test_out/
 ├── ani
-├── ani.af
 ├── faas
 ├── fetch
 ├── ffns
@@ -92,6 +91,10 @@ Options:
   --contamination, -C CONTAMINATION
     Supply the maximum contamination threshold to select genomes on
     Default: 5
+
+  --blast, -b
+    check the unique orthogroups by blasting them against the NCBI nt database.
+    This takes a long time to run.
 
   --help, -h
     Show this help

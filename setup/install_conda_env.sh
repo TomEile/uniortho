@@ -24,3 +24,4 @@ $pms install -y -c bioconda prodigal skani
 # link uniortho and R filter script
 ln -s $PWD/uniortho $HOME/.local/bin
 ln -s $PWD/src/lib/uo_filter_unique_genes.R $HOME/.local/bin
+ln -s $PWD/src/lib/process_blast_check.py $HOME/.local/bin

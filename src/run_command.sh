@@ -7,6 +7,7 @@ completeness=${args[--completeness]}
 contamination=${args[--contamination]}
 cpus=${args[--threads]}
 ani_threshold=${args[--ani]}
+blast_check=${args[--blast]}
 
 # Add s__ to species if absent
 if [[ $species != s__* ]]; then
@@ -50,5 +51,12 @@ if [[ ! -s $HOME/.local/bin/uo_filter_unique_genes.R ]]; then
     exit 1
 fi
 
+script_in_bin "uo_filter_unique_genes.R"
 $HOME/.local/bin/uo_filter_unique_genes.R $outf/pan/pangenome.tsv $outf/ani $ani_threshold $outf
 fetch_genes $outf
+
+if [[ $blast_check == 1 ]]; then
+    run_blast_check $outf $cpus
+    script_in_bin "process_blast_check.py"
+    $HOME/.local/bin/process_blast_check.py $outf/blast/results $outf/uniquegenes.tsv $outf
+fi
