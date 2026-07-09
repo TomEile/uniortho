@@ -27,8 +27,11 @@ while IFS=$'\t' read -r acc assembly_name; do
      while [[ $exitcode -ne 0 ]] && [[ $attempt -le 5 ]] ; do
        
        if [[ $attempt -ne 1 ]] ; then sleep 10 ; echo attempt $attempt ; fi
-       wget -q -P "$dout" $url
-       exitcode=$?
+       if wget -q -P "$dout" "$url"; then
+            exitcode=0
+        else
+            exitcode=$?
+       fi
        attempt=$((attempt + 1))
        #echo $exitcode $attempt
        if [[ $exitcode -ne 0 ]] && [[ $attempt -eq 6 ]] ; then 
