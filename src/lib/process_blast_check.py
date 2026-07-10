@@ -1,3 +1,5 @@
+#!/bin/python3
+
 import sys
 import pandas as pd
 
@@ -11,7 +13,7 @@ genesfile = sys.argv[2]
 outdir = sys.argv[3]
 
 df = pd.read_table(blastfile, names=BLAST_OUTFMT_6)
-genes = pd.read_table(genesfile, delim_whitespace=True)
+genes = pd.read_table(genesfile, sep=r"\s+")
 
 df_summ = df.groupby("qseqid").agg(
     dict(
